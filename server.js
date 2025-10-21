@@ -1,8 +1,10 @@
-// server.js
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config();
+require('dotenv').config(); // Load .env variables
+
+// Debug: Confirm MONGO_URI is loaded
+console.log('Loaded MONGO_URI:', process.env.MONGO_URI);
 
 // Create express app
 const app = express();
@@ -27,21 +29,18 @@ const connectDB = async () => {
 
 connectDB();
 
-// ✅ Example routes
-const productRoutes = require('./routes/products');
-const userRoutes = require('./routes/users');
-const orderRoutes = require('./routes/orders');
-
-// Use routes
-app.use('/api/products', productRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/orders', orderRoutes);
+// ✅ Routes
+app.use('/api/products', require('./routes/products'));
+app.use('/api/user', require('./routes/User'));
+app.use('/api/orders', require('./routes/orders'));
+app.use('/api/home', require('./routes/home'));
+app.use('/api/Cart', require('./routes/Cart'));
 
 // Root route
 app.get('/', (req, res) => {
   res.send('Welcome to Ruby Official API 🚀');
 });
 
-// Start server
+// ✅ Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
