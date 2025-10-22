@@ -1,24 +1,21 @@
 const express = require('express');
 const router = express.Router();
-const Product = require('../models/Product'); // Assuming you have a Product model
+const { protect } = require('../middleware/auth');
+const cartController = require('../controllers/cartController');
 
-let cart = [];
+// Get user's cart
+router.get('/', protect, cartController.getCart);
 
-router.post('/add', async (req, res) => {
-  const { productId } = req.body;
-  try {
-    const product = await Product.findById(productId);
-    if (product) {
-      cart.push(product);
-    }
-    res.redirect('/cart');
-  } catch (err) {
-    res.render('error', { message: 'Failed to add product to cart.' });
-  }
-});
+// Add product to cart
+router.post('/', protect, cartController.addToCart);
 
-router.get('/', (req, res) => {
-  res.render('cart', { cart });
-});
+// Update quantity of a specific product in cart
+router.put('/:productId', protect, cartController.updateCart);
+
+// Remove a specific product from cart
+router.delete('/:productId', protect, cartController.removeProduct);
+
+// Clear entire cart
+router.delete('/clear', protect, cartController.clearCart);
 
 module.exports = router;
