@@ -7,11 +7,26 @@ require("dotenv").config();
 
 const app = express();
 
-// ✅ Allow requests from Netlify + Localhost
+// ✅ Allowed frontend origins
+const allowedOrigins = [
+  "https://ruby-official.netlify.app", // Netlify frontend
+  "http://localhost:3000"              // Local development
+];
+
+// ✅ CORS configuration
 app.use(
   cors({
-    origin: ["https://ruby-official.netlify.app", "http://localhost:3000"],
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like Postman)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
@@ -38,7 +53,7 @@ const connectDB = async () => {
 };
 connectDB();
 
-// ✅ Routes
+// ✅ Routes (ensure file names match exactly)
 app.use("/api/products", require("./routes/products"));
 app.use("/api/orders", require("./routes/orders"));
 app.use("/api/cart", require("./routes/Cart"));
@@ -59,7 +74,7 @@ app.use((req, res) => {
 // ✅ Global error handler
 app.use((err, req, res, next) => {
   console.error("Global Error:", err.stack);
-  res.status(500).json({ error: "Internal server error" });
+  res.status(500).json({ error: err.message || "Internal server error" });
 });
 
 // ✅ Start Server
