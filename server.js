@@ -7,8 +7,16 @@ require("dotenv").config();
 
 const app = express();
 
+// ✅ Allow requests from Netlify + Localhost
+app.use(
+  cors({
+    origin: ["https://ruby-official.netlify.app", "http://localhost:3000"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
+
 // ✅ Middleware
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -30,13 +38,13 @@ const connectDB = async () => {
 };
 connectDB();
 
-// ✅ Routes (make sure all filenames are lowercase)
+// ✅ Routes
 app.use("/api/products", require("./routes/products"));
 app.use("/api/orders", require("./routes/orders"));
-app.use("/api/cart", require("./routes/cart"));
+app.use("/api/cart", require("./routes/Cart"));
 app.use("/api/category", require("./routes/category"));
 app.use("/api/review", require("./routes/review"));
-app.use("/api/users", require("./routes/user")); // lowercase 'user'
+app.use("/api/users", require("./routes/User"));
 
 // ✅ Root route
 app.get("/", (req, res) => {
