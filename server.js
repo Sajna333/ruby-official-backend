@@ -9,33 +9,35 @@ const app = express();
 
 // ✅ Allowed frontend origins
 const allowedOrigins = [
-  "https://ruby-official.netlify.app", // Netlify frontend
-  "http://localhost:3000"              // Local development
+  "https://ruby-official.netlify.app", // Deployed frontend
+  "http://localhost:3000",             // Local frontend
 ];
 
-// ✅ CORS configuration
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like Postman)
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) === -1) {
-        const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
-        return callback(new Error(msg), false);
-      }
-      return callback(null, true);
-    },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
+// ✅ CORS setup
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // Allow tools like Postman
+    if (!allowedOrigins.includes(origin)) {
+      return callback(
+        new Error(`CORS policy does not allow access from ${origin}`),
+        false
+      );
+    }
+    return callback(null, true);
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // Handle preflight requests
 
 // ✅ Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ Serve uploaded images publicly
+// ✅ Public uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ✅ MongoDB Connection
@@ -53,27 +55,31 @@ const connectDB = async () => {
 };
 connectDB();
 
-// ✅ Routes (ensure file names match exactly)
+// ✅ ROUTES
+// Make sure these route files exist in ./routes/
 app.use("/api/products", require("./routes/products"));
 app.use("/api/orders", require("./routes/orders"));
 app.use("/api/cart", require("./routes/Cart"));
 app.use("/api/category", require("./routes/category"));
 app.use("/api/review", require("./routes/review"));
-app.use("/api/users", require("./routes/User"));
+app.use("/api/contact", require("./routes/contact"));
 
-// ✅ Root route
+// 🔑 Updated Auth/User route (this handles login, register, forgot-password, etc.)
+app.use("/api/auth", require("./routes/User")); // 👈 Changed from /api/users to /api/auth
+
+// ✅ Root Route
 app.get("/", (req, res) => {
-  res.send("Welcome to Ruby Official API 🚀");
+  res.send("🚀 Ruby Official Backend is Live and Running!");
 });
 
-// ✅ 404 handler
+// ✅ 404 Handler
 app.use((req, res) => {
   res.status(404).json({ error: "Route not found" });
 });
 
-// ✅ Global error handler
+// ✅ Global Error Handler
 app.use((err, req, res, next) => {
-  console.error("Global Error:", err.stack);
+  console.error("Global Error:", err.stack || err);
   res.status(500).json({ error: err.message || "Internal server error" });
 });
 
