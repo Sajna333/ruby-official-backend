@@ -7,23 +7,33 @@ require("dotenv").config();
 
 const app = express();
 
-// ✅ Allowed frontend origins
+// ✅ Allowed domains (root only)
 const allowedOrigins = [
   "https://ruby-official.netlify.app",
   "https://ruby-official-frontend.vercel.app",
-  "https://ruby-official-frontend-q5j839pmu-sajna333s-projects.vercel.app",
   "http://localhost:3000",
 ];
 
-// ✅ CORS setup (Simplified & Safe)
+// ✅ CORS with dynamic logging + flexible matching
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin) return callback(null, true); // Allow Postman / curl
-      if (allowedOrigins.includes(origin)) {
+      console.log("🌍 Incoming request from origin:", origin); // 🔍 Debug log
+
+      if (!origin) return callback(null, true); // Allow tools like Postman
+
+      // ✅ Allow if exact match or subdomain of allowed origins
+      const allowed = allowedOrigins.some((allowedOrigin) => {
+        return (
+          origin === allowedOrigin ||
+          origin.endsWith(allowedOrigin.replace("https://", ""))
+        );
+      });
+
+      if (allowed) {
         return callback(null, true);
       } else {
-        console.error(`❌ Blocked by CORS: ${origin}`);
+        console.error("❌ Blocked by CORS:", origin);
         return callback(
           new Error(`CORS policy does not allow access from ${origin}`),
           false
@@ -34,14 +44,13 @@ app.use(
   })
 );
 
-// ✅ Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ Public uploads folder
+// ✅ Static uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// ✅ MongoDB Connection
+// ✅ MongoDB
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI, {
@@ -65,22 +74,22 @@ app.use("/api/review", require("./routes/review"));
 app.use("/api/contact", require("./routes/contact"));
 app.use("/api/auth", require("./routes/User"));
 
-// ✅ Root Route
+// ✅ Root route
 app.get("/", (req, res) => {
   res.send("🚀 Ruby Official Backend is Live and Running!");
 });
 
-// ✅ 404 Handler
+// ✅ 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: "Route not found" });
 });
 
-// ✅ Global Error Handler
+// ✅ Global error handler
 app.use((err, req, res, next) => {
   console.error("Global Error:", err.message);
   res.status(500).json({ error: err.message || "Internal Server Error" });
 });
 
-// ✅ Start Server
+// ✅ Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
