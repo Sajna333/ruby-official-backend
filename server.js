@@ -9,23 +9,28 @@ const app = express();
 
 // ✅ Allowed frontend origins
 const allowedOrigins = [
-  "https://ruby-official.netlify.app", // Deployed frontend
-  "http://localhost:3000",
-  "https://ruby-official-frontend.vercel.app",
-  "https://ruby-official-frontend-q5j839pmu-sajna333s-projects.vercel.app",             // Local frontend
+  "https://ruby-official.netlify.app", // old Netlify frontend
+  "https://ruby-official-frontend.vercel.app", // main Vercel deployment
+  "https://ruby-official-frontend-q5j839pmu-sajna333s-projects.vercel.app", // alternate Vercel preview
+  "http://localhost:3000", // local dev
 ];
 
-// ✅ CORS setup
+// ✅ CORS setup (robust version)
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // Allow tools like Postman
-    if (!allowedOrigins.includes(origin)) {
+    if (!origin) {
+      // Allow requests from server-to-server or tools like Postman
+      return callback(null, true);
+    }
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      console.error(`❌ CORS blocked: ${origin}`);
       return callback(
         new Error(`CORS policy does not allow access from ${origin}`),
         false
       );
     }
-    return callback(null, true);
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -33,13 +38,13 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // Handle preflight requests
+app.options("*", cors(corsOptions)); // handle preflight requests
 
 // ✅ Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ Public uploads
+// ✅ Public uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ✅ MongoDB Connection
@@ -58,7 +63,6 @@ const connectDB = async () => {
 connectDB();
 
 // ✅ ROUTES
-// Make sure these route files exist in ./routes/
 app.use("/api/products", require("./routes/products"));
 app.use("/api/orders", require("./routes/orders"));
 app.use("/api/cart", require("./routes/Cart"));
@@ -66,25 +70,25 @@ app.use("/api/category", require("./routes/category"));
 app.use("/api/review", require("./routes/review"));
 app.use("/api/contact", require("./routes/contact"));
 
-// 🔑 Updated Auth/User route (this handles login, register, forgot-password, etc.)
-app.use("/api/auth", require("./routes/User")); // 👈 Changed from /api/users to /api/auth
+// 🔑 Auth/User Routes
+app.use("/api/auth", require("./routes/User")); // (renamed from Users to User.js)
 
-// ✅ Root Route
+// ✅ Root route
 app.get("/", (req, res) => {
   res.send("🚀 Ruby Official Backend is Live and Running!");
 });
 
-// ✅ 404 Handler
+// ✅ 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: "Route not found" });
 });
 
-// ✅ Global Error Handler
+// ✅ Global error handler
 app.use((err, req, res, next) => {
   console.error("Global Error:", err.stack || err);
   res.status(500).json({ error: err.message || "Internal server error" });
 });
 
-// ✅ Start Server
+// ✅ Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
