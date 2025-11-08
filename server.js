@@ -10,7 +10,9 @@ const app = express();
 // ✅ Allowed frontend origins
 const allowedOrigins = [
   "https://ruby-official.netlify.app", // Deployed frontend
-  "http://localhost:3000",             // Local frontend
+  "http://localhost:3000",
+  "https://ruby-official-frontend.vercel.app",
+  "https://ruby-official-frontend-q5j839pmu-sajna333s-projects.vercel.app",             // Local frontend
 ];
 
 // ✅ CORS setup
@@ -56,6 +58,7 @@ const connectDB = async () => {
 connectDB();
 
 // ✅ ROUTES
+// Make sure these route files exist in ./routes/
 app.use("/api/products", require("./routes/products"));
 app.use("/api/orders", require("./routes/orders"));
 app.use("/api/cart", require("./routes/Cart"));
@@ -63,8 +66,8 @@ app.use("/api/category", require("./routes/category"));
 app.use("/api/review", require("./routes/review"));
 app.use("/api/contact", require("./routes/contact"));
 
-// ✅ FIXED: Correct file name (auth.js)
-app.use("/api/auth", require("./routes/auth")); 
+// 🔑 Updated Auth/User route (this handles login, register, forgot-password, etc.)
+app.use("/api/auth", require("./routes/User")); // 👈 Changed from /api/users to /api/auth
 
 // ✅ Root Route
 app.get("/", (req, res) => {
