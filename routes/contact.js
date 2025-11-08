@@ -1,9 +1,8 @@
 // routes/contact.js
 const express = require("express");
 const router = express.Router();
-const nodemailer = require("nodemailer");
+const sendEmail = require("../utils/sendEmails");
 
-// POST /api/contact
 router.post("/", async (req, res) => {
   const { name, email, message } = req.body;
 
@@ -12,32 +11,10 @@ router.post("/", async (req, res) => {
   }
 
   try {
-    // ✅ create transporter using Gmail or SMTP
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.ADMIN_EMAIL, // admin email
-        pass: process.env.ADMIN_PASS,  // app password (not your Gmail password)
-      },
-    });
-
-    const mailOptions = {
-      from: email,
-      to: process.env.ADMIN_EMAIL, // send to admin
-      subject: `New Contact Message from ${name}`,
-      text: `
-Name: ${name}
-Email: ${email}
-
-Message:
-${message}
-      `,
-    };
-
-    await transporter.sendMail(mailOptions);
-    res.json({ message: "Your message has been sent successfully!" });
+    await sendEmail(name, email, message);
+    res.status(200).json({ message: "Your message has been sent successfully!" });
   } catch (error) {
-    console.error("Email send error:", error);
+    console.error("Contact form error:", error.message);
     res.status(500).json({ message: "Failed to send message. Try again later." });
   }
 });
