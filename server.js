@@ -56,7 +56,6 @@ const connectDB = async () => {
 connectDB();
 
 // ✅ ROUTES
-// Make sure these route files exist in ./routes/
 app.use("/api/products", require("./routes/products"));
 app.use("/api/orders", require("./routes/orders"));
 app.use("/api/cart", require("./routes/Cart"));
@@ -64,8 +63,8 @@ app.use("/api/category", require("./routes/category"));
 app.use("/api/review", require("./routes/review"));
 app.use("/api/contact", require("./routes/contact"));
 
-// 🔑 Updated Auth/User route (this handles login, register, forgot-password, etc.)
-app.use("/api/auth", require("./routes/User")); // 👈 Changed from /api/users to /api/auth
+// ✅ FIXED: Correct file name (auth.js)
+app.use("/api/auth", require("./routes/auth")); 
 
 // ✅ Root Route
 app.get("/", (req, res) => {
