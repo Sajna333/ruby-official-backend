@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { protect } = require('../middleware/auth');
-const cartController = require('../controllers/cartController');
+const { protect } = require('../middleware/auth'); // ✅ ensure this file exists
+const cartController = require('../controllers/cartController'); // ✅ correct import
 
 // Get user's cart
 router.get('/', protect, cartController.getCart);
