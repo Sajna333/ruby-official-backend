@@ -7,22 +7,20 @@ require("dotenv").config();
 
 const app = express();
 
-// ✅ Allowed domains (root only)
+// ✅ Allowed origins
 const allowedOrigins = [
   "https://ruby-official.netlify.app",
   "https://ruby-official-frontend.vercel.app",
   "http://localhost:3000",
 ];
 
-// ✅ CORS with dynamic logging + flexible matching
+// ✅ CORS setup
 app.use(
   cors({
     origin: function (origin, callback) {
-      console.log("🌍 Incoming request from origin:", origin); // 🔍 Debug log
+      console.log("🌍 Incoming request from origin:", origin);
+      if (!origin) return callback(null, true);
 
-      if (!origin) return callback(null, true); // Allow tools like Postman
-
-      // ✅ Allow if exact match or subdomain of allowed origins
       const allowed = allowedOrigins.some((allowedOrigin) => {
         return (
           origin === allowedOrigin ||
@@ -47,10 +45,10 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ Static uploads
+// ✅ Static folder for uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// ✅ MongoDB
+// ✅ MongoDB connection
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI, {
@@ -65,14 +63,14 @@ const connectDB = async () => {
 };
 connectDB();
 
-// ✅ Routes
+// ✅ Routes (IMPORTANT: lowercase paths for Linux)
 app.use("/api/products", require("./routes/products"));
 app.use("/api/orders", require("./routes/orders"));
-app.use("/api/cart", require("./routes/Cart"));
+app.use("/api/cart", require("./routes/cart"));
 app.use("/api/category", require("./routes/category"));
 app.use("/api/review", require("./routes/review"));
 app.use("/api/contact", require("./routes/contact"));
-app.use("/api/auth", require("./routes/User"));
+app.use("/api/auth", require("./routes/auth"));
 
 // ✅ Root route
 app.get("/", (req, res) => {
