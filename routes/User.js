@@ -1,10 +1,12 @@
 // routes/users.js
 const express = require("express");
-const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/users");
+const { protect, admin } = require("../middleware/auth");
 require("dotenv").config();
+
+const router = express.Router();
 
 /**
  * ✅ REGISTER a new user
@@ -33,7 +35,6 @@ router.post("/register", async (req, res) => {
 
     await newUser.save();
 
-    // ✅ Generate JWT token
     const token = jwt.sign(
       { id: newUser._id, email: newUser.email },
       process.env.JWT_SECRET || "defaultsecret",
@@ -47,6 +48,7 @@ router.post("/register", async (req, res) => {
         id: newUser._id,
         name: newUser.name,
         email: newUser.email,
+        isAdmin: newUser.isAdmin,
       },
     });
   } catch (error) {
@@ -56,7 +58,7 @@ router.post("/register", async (req, res) => {
 });
 
 /**
- * ✅ LOGIN user and return JWT
+ * ✅ LOGIN user
  * POST /api/users/login
  */
 router.post("/login", async (req, res) => {
@@ -87,6 +89,7 @@ router.post("/login", async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        isAdmin: user.isAdmin,
       },
     });
   } catch (error) {
@@ -96,12 +99,12 @@ router.post("/login", async (req, res) => {
 });
 
 /**
- * ✅ GET all users (for admin/test)
+ * ✅ GET all users (ADMIN only)
  * GET /api/users
  */
-router.get("/", async (req, res) => {
+router.get("/", protect, admin, async (req, res) => {
   try {
-    const users = await User.find().select("-password"); // exclude passwords
+    const users = await User.find().select("-password");
     res.status(200).json(users);
   } catch (error) {
     console.error("❌ Fetch Users Error:", error.message);
