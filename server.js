@@ -19,7 +19,7 @@ app.use(
   cors({
     origin: function (origin, callback) {
       console.log("🌍 Incoming request from origin:", origin);
-      if (!origin) return callback(null, true);
+      if (!origin) return callback(null, true); // Allow Postman / internal
 
       const allowed = allowedOrigins.some((allowedOrigin) => {
         return (
@@ -28,24 +28,20 @@ app.use(
         );
       });
 
-      if (allowed) {
-        return callback(null, true);
-      } else {
-        console.error("❌ Blocked by CORS:", origin);
-        return callback(
-          new Error(`CORS policy does not allow access from ${origin}`),
-          false
-        );
-      }
+      if (allowed) return callback(null, true);
+      console.error("❌ Blocked by CORS:", origin);
+      return callback(
+        new Error(`CORS policy does not allow access from ${origin}`),
+        false
+      );
     },
     credentials: true,
   })
 );
 
+// ✅ Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// ✅ Static folder for uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ✅ MongoDB connection
@@ -63,7 +59,7 @@ const connectDB = async () => {
 };
 connectDB();
 
-// ✅ Routes (IMPORTANT: lowercase paths for Linux)
+// ✅ Routes (lowercase paths - Render is case-sensitive)
 app.use("/api/products", require("./routes/products"));
 app.use("/api/orders", require("./routes/orders"));
 app.use("/api/cart", require("./routes/cart"));
