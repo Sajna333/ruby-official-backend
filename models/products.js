@@ -1,3 +1,4 @@
+// models/products.js
 const mongoose = require("mongoose");
 
 const productSchema = new mongoose.Schema(
@@ -15,4 +16,5 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// ✅ Prevent model overwrite on re-imports
 module.exports = mongoose.models.Product || mongoose.model("Product", productSchema);
