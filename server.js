@@ -62,7 +62,7 @@ connectDB();
 // ✅ Routes (lowercase paths - Render is case-sensitive)
 app.use("/api/products", require("./routes/products"));
 app.use("/api/orders", require("./routes/orders"));
-app.use("/api/Cart", require("./routes/Cart"));
+app.use("/api/cart", require("./routes/cart"));
 app.use("/api/category", require("./routes/category"));
 app.use("/api/review", require("./routes/review"));
 app.use("/api/contact", require("./routes/contact"));
