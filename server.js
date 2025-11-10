@@ -62,12 +62,14 @@ connectDB();
 // ✅ Routes (lowercase paths - Render is case-sensitive)
 app.use("/api/products", require("./routes/products"));
 app.use("/api/orders", require("./routes/orders"));
-app.use("/api/cart", require("./routes/cart"));
+app.use("/api/Cart", require("./routes/Cart"));
 app.use("/api/category", require("./routes/category"));
 app.use("/api/review", require("./routes/review"));
 app.use("/api/contact", require("./routes/contact"));
 app.use("/api/auth", require("./routes/auth"));
-
+app.use("/api/user", require("./routes/user"));
+app.use("/api/home",require("./routes/home"));
+app.use("/api/_index_old",require("./routes/_index_old"));
 // ✅ Root route
 app.get("/", (req, res) => {
   res.send("🚀 Ruby Official Backend is Live and Running!");
