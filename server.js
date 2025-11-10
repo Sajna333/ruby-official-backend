@@ -3,6 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
+const fs = require("fs");
 require("dotenv").config();
 
 const app = express();
@@ -59,7 +60,35 @@ const connectDB = async () => {
 };
 connectDB();
 
-// ✅ Routes (lowercase paths - Render is case-sensitive)
+// ✅ DEBUG: Check for route file existence and export type
+const routeFiles = [
+  "products",
+  "orders",
+  "cart",
+  "category",
+  "review",
+  "contact",
+  "auth",
+  "user",
+  "home",
+  "_index_old",
+];
+
+for (const name of routeFiles) {
+  try {
+    const filePath = path.join(__dirname, "routes", `${name}.js`);
+    if (fs.existsSync(filePath)) {
+      const mod = require(`./routes/${name}`);
+      console.log(`🧩 [DEBUG] Route [${name}] type:`, typeof mod, mod.constructor?.name);
+    } else {
+      console.error(`❌ [DEBUG] Missing route file: ${filePath}`);
+    }
+  } catch (err) {
+    console.error(`❌ [DEBUG] Error loading route [${name}]:`, err.message);
+  }
+}
+
+// ✅ Routes (case-sensitive paths)
 app.use("/api/products", require("./routes/products"));
 app.use("/api/orders", require("./routes/orders"));
 app.use("/api/cart", require("./routes/cart"));
@@ -68,8 +97,9 @@ app.use("/api/review", require("./routes/review"));
 app.use("/api/contact", require("./routes/contact"));
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/user", require("./routes/user"));
-app.use("/api/home",require("./routes/home"));
-app.use("/api/_index_old",require("./routes/_index_old"));
+app.use("/api/home", require("./routes/home"));
+app.use("/api/_index_old", require("./routes/_index_old"));
+
 // ✅ Root route
 app.get("/", (req, res) => {
   res.send("🚀 Ruby Official Backend is Live and Running!");
