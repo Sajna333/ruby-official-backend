@@ -8,37 +8,39 @@ require("dotenv").config();
 
 const app = express();
 
-// ✅ Allowed origins
+// ✅ Allowed origins — exact matches only (no endsWith tricks)
 const allowedOrigins = [
   "https://ruby-official.netlify.app",
   "https://ruby-official-frontend.vercel.app",
   "http://localhost:3000",
+  "http://localhost:5173",
 ];
 
-// ✅ CORS setup
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      console.log("🌍 Incoming request from origin:", origin);
-      if (!origin) return callback(null, true); // Allow Postman / internal
+// ✅ CORS options
+const corsOptions = {
+  origin: function (origin, callback) {
+    console.log("🌍 Incoming request from origin:", origin);
 
-      const allowed = allowedOrigins.some((allowedOrigin) => {
-        return (
-          origin === allowedOrigin ||
-          origin.endsWith(allowedOrigin.replace("https://", ""))
-        );
-      });
+    // Allow requests with no origin (Postman, curl, server-to-server)
+    if (!origin) return callback(null, true);
 
-      if (allowed) return callback(null, true);
-      console.error("❌ Blocked by CORS:", origin);
-      return callback(
-        new Error(`CORS policy does not allow access from ${origin}`),
-        false
-      );
-    },
-    credentials: true,
-  })
-);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    console.error("❌ Blocked by CORS:", origin);
+    return callback(new Error(`CORS policy does not allow access from: ${origin}`), false);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+};
+
+// ✅ Apply CORS — must be before all routes
+app.use(cors(corsOptions));
+
+// ✅ Handle preflight OPTIONS requests for all routes
+app.options("*", cors(corsOptions));
 
 // ✅ Middlewares
 app.use(express.json());
@@ -88,7 +90,7 @@ for (const name of routeFiles) {
   }
 }
 
-// ✅ Routes (case-sensitive paths)
+// ✅ Routes
 app.use("/api/products", require("./routes/products"));
 app.use("/api/orders", require("./routes/orders"));
 app.use("/api/cart", require("./routes/cart"));
@@ -110,8 +112,12 @@ app.use((req, res) => {
   res.status(404).json({ error: "Route not found" });
 });
 
-// ✅ Global error handler
+// ✅ Global error handler — handles CORS errors cleanly
 app.use((err, req, res, next) => {
+  // CORS errors need a clear 403, not a 500
+  if (err.message && err.message.startsWith("CORS policy")) {
+    return res.status(403).json({ error: err.message });
+  }
   console.error("Global Error:", err.message);
   res.status(500).json({ error: err.message || "Internal Server Error" });
 });
